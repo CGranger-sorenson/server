@@ -38,8 +38,8 @@ import unittest
 
 import numpy as np
 import sequence_util as su
-import tritonclient.grpc as grpcclient
-from tritonclient.utils import *
+import tritongrpcclient as grpcclient
+from tritonclientutils import *
 
 _inference_count = 80
 _inference_concurrency = 8

@@ -38,7 +38,6 @@ import test_util as tu
 import tritonclient.grpc as grpcclient
 import tritonclient.http as httpclient
 from google.protobuf import json_format
-from tritonclient.utils import InferenceServerException
 
 
 # Similar set up as dynamic batcher tests
@@ -50,6 +49,7 @@ class LogEndpointTest(tu.TestResultCollector):
         # tearDown() is properly executed and not affecting start state of
         # other test cases
         clear_settings = {
+            "log_file": "",
             "log_info": True,
             "log_warning": True,
             "log_error": True,
@@ -126,7 +126,7 @@ class LogEndpointTest(tu.TestResultCollector):
         # by the server
         self.check_server_initial_state()
 
-        log_settings_1 = {
+        expected_log_settings_1 = {
             "log_file": "log_file.log",
             "log_info": True,
             "log_warning": True,
@@ -134,88 +134,76 @@ class LogEndpointTest(tu.TestResultCollector):
             "log_verbose_level": 0,
             "log_format": "default",
         }
-        expected_log_settings_1 = {
-            "error": "log file location can not be updated through network protocol"
-        }
-
-        log_settings_2 = {
+        expected_log_settings_2 = {
+            "log_file": "log_file.log",
             "log_info": False,
             "log_warning": True,
             "log_error": True,
             "log_verbose_level": 0,
             "log_format": "default",
         }
-        expected_log_settings_2 = log_settings_2.copy()
-        expected_log_settings_2["log_file"] = ""
-
-        log_settings_3 = {
+        expected_log_settings_3 = {
+            "log_file": "log_file.log",
             "log_info": False,
             "log_warning": False,
             "log_error": True,
             "log_verbose_level": 0,
             "log_format": "default",
         }
-        expected_log_settings_3 = log_settings_3.copy()
-        expected_log_settings_3["log_file"] = ""
-
-        log_settings_4 = {
+        expected_log_settings_4 = {
+            "log_file": "log_file.log",
             "log_info": False,
             "log_warning": False,
             "log_error": False,
             "log_verbose_level": 0,
             "log_format": "default",
         }
-        expected_log_settings_4 = log_settings_4.copy()
-        expected_log_settings_4["log_file"] = ""
-
-        log_settings_5 = {
+        expected_log_settings_5 = {
+            "log_file": "log_file.log",
             "log_info": False,
             "log_warning": False,
             "log_error": False,
             "log_verbose_level": 1,
             "log_format": "default",
         }
-        expected_log_settings_5 = log_settings_5.copy()
-        expected_log_settings_5["log_file"] = ""
-
-        log_settings_6 = {
+        expected_log_settings_6 = {
+            "log_file": "log_file.log",
             "log_info": False,
             "log_warning": False,
             "log_error": False,
             "log_verbose_level": 1,
             "log_format": "ISO8601",
         }
-        expected_log_settings_6 = log_settings_6.copy()
-        expected_log_settings_6["log_file"] = ""
 
         triton_client = httpclient.InferenceServerClient("localhost:8000")
-        with self.assertRaisesRegex(
-            InferenceServerException, expected_log_settings_1["error"]
-        ) as e:
-            triton_client.update_log_settings(settings=log_settings_1)
+        self.assertEqual(
+            expected_log_settings_1,
+            triton_client.update_log_settings(settings=expected_log_settings_1),
+            "Unexpected updated log settings",
+        )
         self.assertEqual(
             expected_log_settings_2,
-            triton_client.update_log_settings(settings=log_settings_2),
+            triton_client.update_log_settings(settings=expected_log_settings_2),
             "Unexpected updated log settings",
         )
         self.assertEqual(
             expected_log_settings_3,
-            triton_client.update_log_settings(settings=log_settings_3),
+            triton_client.update_log_settings(settings=expected_log_settings_3),
             "Unexpected updated log settings",
         )
         self.assertEqual(
             expected_log_settings_4,
-            triton_client.update_log_settings(settings=log_settings_4),
+            triton_client.update_log_settings(settings=expected_log_settings_4),
             "Unexpected updated log settings",
         )
         self.assertEqual(
             expected_log_settings_5,
-            triton_client.update_log_settings(settings=log_settings_5),
+            triton_client.update_log_settings(settings=expected_log_settings_5),
             "Unexpected updated log settings",
         )
         self.assertEqual(
             expected_log_settings_6,
-            triton_client.update_log_settings(settings=log_settings_6),
+            triton_client.update_log_settings(settings=expected_log_settings_6),
             "Unexpected updated log settings",
         )
 
@@ -234,16 +222,31 @@ class LogEndpointTest(tu.TestResultCollector):
             "log_verbose_level": 0,
             "log_format": "default",
         }
-        expected_log_settings_1 = (
-            "log file location can not be updated through network protocol"
+        expected_log_settings_1 = grpcclient.service_pb2.LogSettingsResponse()
+        json_format.Parse(
+            json.dumps(
+                {
+                    "settings": {
+                        "log_file": {"stringParam": "log_file.log"},
+                        "log_info": {"boolParam": True},
+                        "log_warning": {"boolParam": True},
+                        "log_error": {"boolParam": True},
+                        "log_verbose_level": {"uint32Param": 0},
+                        "log_format": {"stringParam": "default"},
+                    }
+                }
+            ),
+            expected_log_settings_1,
         )
 
-        with self.assertRaisesRegex(
-            InferenceServerException, expected_log_settings_1
-        ) as e:
-            triton_client.update_log_settings(settings=log_settings_1)
+        self.assertEqual(
+            expected_log_settings_1,
+            triton_client.update_log_settings(settings=log_settings_1),
+            "Unexpected updated log settings",
+        )
 
         log_settings_2 = {
+            "log_file": "log_file.log",
             "log_info": False,
             "log_warning": True,
             "log_error": True,
@@ -255,7 +258,7 @@ class LogEndpointTest(tu.TestResultCollector):
             json.dumps(
                 {
                     "settings": {
-                        "log_file": {"stringParam": ""},
+                        "log_file": {"stringParam": "log_file.log"},
                         "log_info": {"boolParam": False},
                         "log_warning": {"boolParam": True},
                         "log_error": {"boolParam": True},
@@ -274,6 +277,7 @@ class LogEndpointTest(tu.TestResultCollector):
         )
 
         log_settings_3 = {
+            "log_file": "log_file.log",
             "log_info": False,
             "log_warning": False,
             "log_error": True,
@@ -285,7 +289,7 @@ class LogEndpointTest(tu.TestResultCollector):
             json.dumps(
                 {
                     "settings": {
-                        "log_file": {"stringParam": ""},
+                        "log_file": {"stringParam": "log_file.log"},
                         "log_info": {"boolParam": False},
                         "log_warning": {"boolParam": False},
                         "log_error": {"boolParam": True},
@@ -304,6 +308,7 @@ class LogEndpointTest(tu.TestResultCollector):
         )
 
         log_settings_4 = {
+            "log_file": "log_file.log",
             "log_info": False,
             "log_warning": False,
             "log_error": False,
@@ -315,7 +320,7 @@ class LogEndpointTest(tu.TestResultCollector):
             json.dumps(
                 {
                     "settings": {
-                        "log_file": {"stringParam": ""},
+                        "log_file": {"stringParam": "log_file.log"},
                         "log_info": {"boolParam": False},
                         "log_warning": {"boolParam": False},
                         "log_error": {"boolParam": False},
@@ -334,6 +339,7 @@ class LogEndpointTest(tu.TestResultCollector):
         )
 
         log_settings_5 = {
+            "log_file": "log_file.log",
             "log_info": False,
             "log_warning": False,
             "log_error": False,
@@ -345,7 +351,7 @@ class LogEndpointTest(tu.TestResultCollector):
             json.dumps(
                 {
                     "settings": {
-                        "log_file": {"stringParam": ""},
+                        "log_file": {"stringParam": "log_file.log"},
                         "log_info": {"boolParam": False},
                         "log_warning": {"boolParam": False},
                         "log_error": {"boolParam": False},
@@ -364,6 +370,7 @@ class LogEndpointTest(tu.TestResultCollector):
         )
 
         log_settings_6 = {
+            "log_file": "log_file.log",
             "log_info": False,
             "log_warning": False,
             "log_error": False,
@@ -375,7 +382,7 @@ class LogEndpointTest(tu.TestResultCollector):
             json.dumps(
                 {
                     "settings": {
-                        "log_file": {"stringParam": ""},
+                        "log_file": {"stringParam": "log_file.log"},
                         "log_info": {"boolParam": False},
                         "log_warning": {"boolParam": False},
                         "log_error": {"boolParam": False},

@@ -162,7 +162,10 @@ TraceManager::UpdateTraceSettingInternal(
                current_setting->log_frequency_specified_) ||
               (new_setting.log_frequency_ != nullptr)));
   const bool filepath_specified =
-      (((current_setting != nullptr) && current_setting->filepath_specified_));
+      (new_setting.clear_filepath_ ? false
+                                   : (((current_setting != nullptr) &&
+                                       current_setting->filepath_specified_) ||
+                                      (new_setting.filepath_ != nullptr)));
 
   if (level_specified) {
     level = (new_setting.level_ != nullptr) ? *new_setting.level_
@@ -182,7 +185,9 @@ TraceManager::UpdateTraceSettingInternal(
                         : current_setting->log_frequency_;
   }
   if (filepath_specified) {
-    filepath = current_setting->file_->FileName();
+    filepath = (new_setting.filepath_ != nullptr)
+                   ? *new_setting.filepath_
+                   : current_setting->file_->FileName();
   }
 
   // Some special case when updating model setting
@@ -262,8 +267,7 @@ void
 TraceManager::GetTraceSetting(
     const std::string& model_name, TRITONSERVER_InferenceTraceLevel* level,
     uint32_t* rate, int32_t* count, uint32_t* log_frequency,
-    std::string* filepath, InferenceTraceMode* trace_mode,
-    TraceConfigMap* config_map)
+    std::string* filepath)
 {
   std::shared_ptr<TraceSetting> trace_setting;
   {
@@ -278,8 +282,6 @@ TraceManager::GetTraceSetting(
   *count = trace_setting->count_;
   *log_frequency = trace_setting->log_frequency_;
   *filepath = trace_setting->file_->FileName();
-  *trace_mode = trace_setting->mode_;
-  *config_map = trace_setting->config_map_;
 }
 
 void
@@ -757,9 +759,9 @@ TraceManager::InferenceTraceModeString(InferenceTraceMode mode)
 {
   switch (mode) {
     case TRACE_MODE_TRITON:
-      return "triton";
+      return "TRITON";
     case TRACE_MODE_OPENTELEMETRY:
-      return "opentelemetry";
+      return "OPENTELEMETRY";
   }
 
   return "<unknown>";

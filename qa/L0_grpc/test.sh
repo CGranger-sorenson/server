@@ -269,7 +269,7 @@ for i in \
    ; do
    BASE=$(basename -- $i)
    SUFFIX="${BASE%.*}"
-    if [[ $SUFFIX == "image_client" ]]; then
+    if [ $SUFFIX == "image_client" ]; then
         $i -m inception_graphdef -s INCEPTION -a -c 1 -b 1 -i grpc -u localhost:8001 $IMAGE >> "${CLIENT_LOG}.c++.async.${SUFFIX}" 2>&1
         if [ `grep -c VULTURE ${CLIENT_LOG}.c++.async.${SUFFIX}` != "1" ]; then
             echo -e "\n***\n*** Failed. Expected 1 VULTURE results\n***"
@@ -296,24 +296,16 @@ for i in \
     #             RET=1
     #         fi
     #     done
-    elif [[ $BASE == "simple_grpc_infer_client" ]]; then
+    elif [ $BASE = ${SIMPLE_INFER_CLIENT} ]; then
         # Test forcing new channel creation with simple infer client
-        NEW_CHANNEL_STRING="new connected subchannel"
-        CACHED_CHANNEL_STRING_NONE="There are 0 cached channels"
-        CACHED_CHANNEL_STRING_ONE="There are 1 cached channel"
+        NEW_CHANNEL_STRING = "creating client_channel for channel stack"
         GRPC_TRACE=subchannel GRPC_VERBOSITY=info $i -v -c "true" >> ${CLIENT_LOG}.c++.${SUFFIX} 2>&1
         if [ $? -ne 0 ]; then
             cat ${CLIENT_LOG}.c++.${SUFFIX}
             RET=1
         fi
-        NUM_NEW_CHANNEL_CALLS=`grep -c "${NEW_CHANNEL_STRING}" ${CLIENT_LOG}.c++.${SUFFIX}`
-        if [ $NUM_NEW_CHANNEL_CALLS != "1" ]; then
-            echo -e "\n***\n*** Failed. Expected 1 ${NEW_CHANNEL_STRING} calls but got ${NUM_NEW_CHANNEL_CALLS}\n***"
-            cat $CLIENT_LOG.c++.${SUFFIX}
-            RET=1
-        fi
-        if [ `grep -c "${CACHED_CHANNEL_STRING_ONE}" ${CLIENT_LOG}.c++.${SUFFIX}` != "2" ]; then
-            echo -e "\n***\n*** Failed. Expected 1 cached channel\n***"
+        if [ `grep -c ${NEW_CHANNEL_STRING} ${CLIENT_LOG}.c++.${SUFFIX}` != "1" ]; then
+            echo -e "\n***\n*** Failed. Expected 1 ${NEW_CHANNEL_STRING} calls\n***"
             cat $CLIENT_LOG.c++.${SUFFIX}
             RET=1
         fi
@@ -322,14 +314,8 @@ for i in \
             cat ${CLIENT_LOG}.c++.${SUFFIX}
             RET=1
         fi
-        NUM_NEW_CHANNEL_CALLS=`grep -c "${NEW_CHANNEL_STRING}" ${CLIENT_LOG}.c++.${SUFFIX}`
-        if [ $NUM_NEW_CHANNEL_CALLS != "3" ]; then
-            echo -e "\n***\n*** Failed. Expected 2 ${NEW_CHANNEL_STRING} calls but got ${NUM_NEW_CHANNEL_CALLS}\n***"
-            cat $CLIENT_LOG.c++.${SUFFIX}
-            RET=1
-        fi
-        if [ `grep -c "${CACHED_CHANNEL_STRING_NONE}" ${CLIENT_LOG}.c++.${SUFFIX}` != "2" ]; then
-            echo -e "\n***\n*** Failed. Expected 0 cached channels\n***"
+        if [ `grep -c ${NEW_CHANNEL_STRING} ${CLIENT_LOG}.c++.${SUFFIX}` != "2" ]; then
+            echo -e "\n***\n*** Failed. Expected 2 ${NEW_CHANNEL_STRING} calls\n***"
             cat $CLIENT_LOG.c++.${SUFFIX}
             RET=1
         fi
