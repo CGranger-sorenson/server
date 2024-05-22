@@ -49,7 +49,7 @@ from sphinx import search
 # -- Project information -----------------------------------------------------
 
 project = "NVIDIA Triton Inference Server"
-copyright = "2023 NVIDIA CORPORATION & AFFILIATES. All rights reserved"
+copyright = "2018-2024, NVIDIA Corporation"
 author = "NVIDIA"
 
 # The full version, including alpha/beta/rc tags
@@ -67,16 +67,39 @@ master_doc = "contents"
 # ones.
 extensions = [
     "ablog",
-    "myst_nb",
+    "myst_parser",
     "sphinx_copybutton",
     "sphinx_design",
     "sphinx-prompt",
     # "sphinxcontrib.bibtex",
     "sphinx_tabs.tabs",
     "sphinx_sitemap",
+    "sphinx.ext.autodoc",
+    "sphinx.ext.autosummary",
+    "sphinx.ext.mathjax",
+    "sphinx.ext.napoleon",
+    "sphinx.ext.ifconfig",
+    "sphinx.ext.extlinks",
 ]
 
 suppress_warnings = ["myst.domains", "ref.ref", "myst.header"]
+
+source_suffix = [".rst", ".md"]
+
+autodoc_default_options = {
+    "members": True,
+    "undoc-members": True,
+    "private-members": True,
+}
+
+autosummary_generate = True
+autosummary_mock_imports = [
+    "tritonclient.grpc.model_config_pb2",
+    "tritonclient.grpc.service_pb2",
+    "tritonclient.grpc.service_pb2_grpc",
+]
+
+napoleon_include_special_with_doc = True
 
 numfig = True
 
@@ -145,7 +168,16 @@ html_theme_options = {
     "logo_only": False,
     "show_toc_level": 2,
     "extra_navbar": "",
-    "extra_footer": "",
+    "extra_footer": """
+      <a href="https://www.nvidia.com/en-us/about-nvidia/privacy-policy/" target="_blank">Privacy Policy</a> |
+      <a href="https://www.nvidia.com/en-us/privacy-center/" target="_blank">Manage My Privacy</a> |
+      <a href="https://www.nvidia.com/en-us/preferences/email-preferences/" target="_blank">Do Not Sell or Share My
+        Data</a> |
+      <a href="https://www.nvidia.com/en-us/about-nvidia/terms-of-service/" target="_blank">Terms of Service</a> |
+      <a href="https://www.nvidia.com/en-us/about-nvidia/accessibility/" target="_blank">Accessibility</a> |
+      <a href="https://www.nvidia.com/en-us/about-nvidia/company-policies/" target="_blank">Corporate Policies</a> |
+      <a href="https://www.nvidia.com/en-us/product-security/" target="_blank">Product Security</a> |
+      <a href="https://www.nvidia.com/en-us/contact/" target="_blank">Contact</a>""",
     "repository_url": "https://github.com/triton-inference-server/server",
     "use_repository_button": True,
 }
