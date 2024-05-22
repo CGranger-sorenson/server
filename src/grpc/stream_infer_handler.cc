@@ -572,10 +572,10 @@ ModelStreamInferHandler::StreamInferResponseComplete(
         "INFER_RESPONSE_COMPLETE", TraceManager::CaptureTimestamp()));
   }
 #endif  // TRITON_ENABLE_TRACING
-
+  
   // Log appropriate errors
-  bool is_complete =
-      state->complete_ || (flags & TRITONSERVER_RESPONSE_COMPLETE_FINAL) != 0;
+  bool is_complete = ((flags & TRITONSERVER_RESPONSE_COMPLETE_FINAL) != 0);
+  state->complete_ = is_complete;
   if (!state->is_decoupled_) {
     if (!is_complete) {
       LOG_ERROR << "[INTERNAL] ModelStreamInfer received a response without "
@@ -615,8 +615,6 @@ ModelStreamInferHandler::StreamInferResponseComplete(
       state->step_ = Steps::CANCELLED;
       state->context_->PutTaskBackToQueue(state);
     }
-
-    state->complete_ = is_complete;
     return;
   }
 
