@@ -69,10 +69,10 @@ import requests
 # incorrectly load the other version of the openvino libraries.
 #
 TRITON_VERSION_MAP = {
-    "2.46.0dev": (
-        "24.05dev",  # triton container
-        "24.04",  # upstream container
-        "1.17.3",  # ORT
+    "2.46.0": (
+        "24.05",  # triton container
+        "24.05",  # upstream container
+        "1.18.0",  # ORT
         "2023.3.0",  # ORT OpenVINO
         "2023.3.0",  # Standalone OpenVINO
         "3.2.6",  # DCGM version
@@ -1119,6 +1119,8 @@ RUN python3 -m pip install /opt/tritonserver/backends/tensorrtllm/tensorrt_llm-*
 RUN find /usr -name libtensorrt_llm.so -exec dirname {} \; > /etc/ld.so.conf.d/tensorrt-llm.conf
 RUN find /opt/tritonserver -name libtritonserver.so -exec dirname {} \; > /etc/ld.so.conf.d/triton-tensorrtllm-worker.conf
 
+RUN pip3 install setuptools==69.5.1 grpcio-tools==1.64.0
+
 ENV LD_LIBRARY_PATH=/usr/local/tensorrt/lib/:/opt/tritonserver/backends/tensorrtllm:$LD_LIBRARY_PATH
 """
     with open(os.path.join(ddir, dockerfile_name), "w") as dfile:
@@ -1741,7 +1743,7 @@ def tensorrtllm_postbuild(cmake_script, repo_install_dir, tensorrtllm_be_dir):
         cmake_destination_dir,
     )
     cmake_script.cp(
-        os.path.join(tensorrtllm_be_dir, "build", "trtllmExecutorWorker"),
+        os.path.join(tensorrtllm_be_dir, "build", "triton_tensorrtllm_worker"),
         cmake_destination_dir,
     )
 
