@@ -2465,8 +2465,7 @@ if __name__ == "__main__":
                 )
             )
         cver = TRITON_VERSION_MAP[FLAGS.version][0]
-    if not cver.endswith("dev"):
-        default_repo_tag = "r" + cver
+
     log("default repo-tag: {}".format(default_repo_tag))
 
     # For other versions use the TRITON_VERSION_MAP unless explicitly
